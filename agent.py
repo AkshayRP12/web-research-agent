@@ -1,6 +1,6 @@
 from langchain_groq import ChatGroq
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain.tools import Tool
+from langchain_classic.agents import create_react_agent, AgentExecutor
+from langchain_core.tools import Tool
 from langchain import hub
 from ddgs import DDGS
 from dotenv import load_dotenv
@@ -19,7 +19,7 @@ def search_web(query: str) -> str:
             results = list(ddgs.text(query, max_results=5))
             output = ""
             for r in results:
-                output += f"Title: {r['title']}\nSummary: {r['body']}\nURL: {r['href']}\n\n"
+                output += f"Title: {r.title}\nSummary: {r.body}\nURL: {r.href}\n\n"
             return output if output else "No results found."
     except Exception as e:
         return f"Search failed: {str(e)}"
@@ -32,7 +32,7 @@ search_tool = Tool(
 
 prompt = hub.pull("hwchase17/react")
 
-agent = create_react_agent(llm=llm, tools=[search_tool], prompt=prompt)
+agent = create_tool_calling_agent(llm, [search_tool], prompt)
 agent_executor = AgentExecutor(
     agent=agent,
     tools=[search_tool],
